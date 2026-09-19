@@ -1,0 +1,33 @@
+﻿// ==========================================
+// Customer Churn Analysis - DAX Measures
+// ==========================================
+
+// 1. Core Base Measures
+Total Customers = COUNTROWS(vw_FactCustomerChurn)
+
+Churned Customers = CALCULATE([Total Customers], vw_FactCustomerChurn[Churn] = "Yes")
+
+Retained Customers = CALCULATE([Total Customers], vw_FactCustomerChurn[Churn] = "No")
+
+// 2. Rates
+Churn Rate % = DIVIDE([Churned Customers], [Total Customers], 0)
+
+Retention Rate % = 1 - [Churn Rate %]
+
+// 3. Financial Impact
+Total MRR = SUM(vw_FactCustomerChurn[MonthlyCharges])
+
+Lost MRR = CALCULATE([Total MRR], vw_FactCustomerChurn[Churn] = "Yes")
+
+Revenue Churn % = DIVIDE([Lost MRR], [Total MRR], 0)
+
+// 4. Averages
+Average Tenure (Months) = AVERAGE(vw_FactCustomerChurn[tenure])
+
+Average MRR = AVERAGE(vw_FactCustomerChurn[MonthlyCharges])
+
+// 5. Dynamic Title Measure (For the Dashboard)
+Dynamic Churn Title = 
+    "Churn Rate for " & 
+    IF(ISFILTERED(vw_DimContract[ContractType]), SELECTEDVALUE(vw_DimContract[ContractType]), "All Contracts") & 
+    " is " & FORMAT([Churn Rate %], "0.0%")
